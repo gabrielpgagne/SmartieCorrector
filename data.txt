@@ -1,0 +1,1 @@
+[["Write the question here, then\n", "Enter new ac.\n"], ["Wc\n", "Ex\n"]]
