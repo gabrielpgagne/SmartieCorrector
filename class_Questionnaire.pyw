@@ -56,7 +56,7 @@ class Questionnaire(Frame):
 
     def addQuestion(self):
         """
-        This method is called when the user wants to add a new question upon the Add button press.
+        This method is called when the user wants to add a new question upon pressing the Add button press.
         It doesn't allow for duplicate questions.
         """
         newQ = self.userInput.get('1.0', END)
@@ -139,6 +139,7 @@ class Questionnaire(Frame):
     
     def loadData(self):
         """
+        NOT YET IMPLEMENTED
         This method is called when the Load button is pressed.
         It loads the questions stored in the "data.txt" file and updates
         the application.
@@ -172,10 +173,11 @@ class Questionnaire(Frame):
         else:
             self.delButton.config(state=DISABLED)
 
-root = Tk()
-root.title("Teacher's Question Box Manager")
+if __name__ == "__main__":
+    root = Tk()
+    root.title("Teacher's Question Box Manager")
 
-qFrame = Questionnaire(root)
-qFrame.pack()
+    qFrame = Questionnaire(root)
+    qFrame.pack()
 
-root.mainloop()
+    root.mainloop()

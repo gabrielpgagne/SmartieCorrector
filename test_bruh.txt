@@ -1,0 +1,21 @@
+
+        for b, i in enumerate(studentAnswerSyn):
+            synonyms = set()
+            for j in i:
+                synonym = j.name()
+                synonym = re.sub(expr, "", synonym)
+                synonyms.add(synonym)
+            synonyms = (False, tuple(synonyms))   
+            realStudentSyn[b] = synonyms
+        print(answerSyn)
+        print(realStudentSyn)
+
+        for i in realStudentSyn.keys():
+            for v in range(len(realStudentSyn[i][1])):
+                if realStudentSyn[i][0] == True:
+                    continue
+                elif realStudentSyn[i][1][v] in realAnswerSyn:
+                    similarity += 1
+                    realStudentSyn[i] = (True, realStudentSyn[i][1])
+        print(similarity)
+        return round(similarity/len(answerSyn), 4)

@@ -68,9 +68,22 @@ class QuestionContainer():
         the theoretical answer and the student's answer
         """
         question, answer, studentAnswer = self.lemmatize()
+        """
+        bug fix: yes turns to 'ye'
+        """
+        for b, i in enumerate(answer):
+            if i == 'ye':
+                answer[b] = 'yes'
+                break
+        for b, i in enumerate(studentAnswer):
+            if i == 'ye':
+                studentAnswer[b] = 'yes'
+                break
 
         stop_words = set(corpus.stopwords.words("english"))
-
+        stop_words.remove('no')
+        stop_words.add('question')
+        stop_words.add('answer')
         question = [w for w in question if w not in string.punctuation and len(w) > 0 and w.lower() not in stop_words]
         answer = [w for w in answer if w not in string.punctuation and len(w) > 0 and w.lower() not in stop_words]
         studentAnswer = [w for w in studentAnswer if w not in string.punctuation and len(w) > 0 and w.lower() not in stop_words]
@@ -101,20 +114,12 @@ class QuestionContainer():
 
     def compareAnswers(self):
         """
-        v1: comparison will go to 1-depth hyponym. 
-        This means part of a student's answer will be GOOD if it is part of either
-        part of the theoretical answer's direct synsets OR their direct hyponyms.
-        If a synset from a word from the student's answer matches
-        a) an answer's direct synset or
-        b) an answer's 1-depth hyponym,
-        then it's counted as a "good" word
+        v1: only checks for synonym matching
         """
-        similarity = 0
         questionSyn, answerSyn, studentAnswerSyn = self.synsetExtraction()
-        # studentAnswerSyn de forme [syn1, syn2, syn3]
-        # syn1 de forme [synonym1, synonym2, synonym3]
-        realAnswerSynSet = [i for i in answerSyn if i not in questionSyn]
-        realAnswerSyn = set()
+
+        realAnswerSynSet = [i for i in answerSyn if i not in questionSyn and i != []]
+        realAnswerSyn = set() # complete set of the synonyms in theoretical answer, without doubles
         expr = r"(.[a-z].[0-9]{2})$" #forme .[lettre].[nombre]
         for i in realAnswerSynSet:
             for j in i:
@@ -122,23 +127,23 @@ class QuestionContainer():
                 synonym = re.sub(expr, "", synonym)
                 realAnswerSyn.add(synonym)
 
-        checked_synonyms = set()
+        # studentAnswerSyn de forme [syn1, syn2, syn3]
+        # syn1 de forme [synonym1, synonym2, synonym3]
+        similarity = 0
         for i in studentAnswerSyn:
+            # i -> syn1 = [synonym1, synonym2]
             for j in i:
-                synonym = j.name()
-                synonym = re.sub(expr, "", synonym)
-                if synonym not in checked_synonyms:
-                    checked_synonyms.add(synonym)
-                    if synonym in realAnswerSyn: #if any of the synonyms match, similarity += 1 and we move on to next word
-                        similarity += 1
-                        realAnswerSyn.remove(synonym)
-                        break
-                checked_synonyms.add(synonym)
+                # j -> synonym1
+                synonym = j.name() # retrieve name of synonym
+                synonym = re.sub(expr, "", synonym) # eliminate its ID
+                if synonym in realAnswerSyn: # if any of the synonyms match, similarity += 1 and we move on to next word
+                    similarity += 1
+                    realAnswerSyn.remove(synonym) # we don't need the synonym anymore since it was matched
+                    break
 
         return round(similarity/len(realAnswerSynSet), 4)
 
 if __name__ == "__main__":
-
     Q1 = QuestionContainer("What is the tree mainly made of?", "A tree is mainly made of bark, sap, wood, leaves.")
     "elements importants: bark, sap, wood, leaves"
 
@@ -173,4 +178,9 @@ if __name__ == "__main__":
     print(Q4.compareAnswers())
     Q5 = QuestionContainer("What color is the sky?", "The sky is blue or gray", "The sky is oftentimes bluish in color or grey")
     print(Q5.compareAnswers())
+
+    q5 = QuestionContainer("Question 0", "The answer to this question is yes", "yes")
+    q6 = QuestionContainer("Question 0", "The answer to this question is no.", "yes")
+    print(q5.compareAnswers())
+    print(q6.compareAnswers())
  
